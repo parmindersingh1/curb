@@ -1,0 +1,96 @@
+<div class="Mid_Top">
+  <div class="d-flex h-100 p-0 m-0">
+    <div class="h-100 p-0 m-0 w-80 position-relative">
+      <app-map [latlong]="[51.5, -0.09]"></app-map>
+    </div>
+    <div class="w-20">
+        <p>&nbsp;</p>
+    </div>
+  </div>
+  <a
+    [routerLink]="['/app/curb-view']"
+    routerLinkActive="router-link-active"
+    class="ancr"
+    >&nbsp;</a
+  >
+  <a
+    [routerLink]="['/app/curb-view']"
+    routerLinkActive="router-link-active"
+    class="ancr ancr2"
+    >&nbsp;</a
+  >
+  <a
+    [routerLink]="['/app/curb-view']"
+    routerLinkActive="router-link-active"
+    class="ancr ancr3"
+    >&nbsp;</a
+  >
+</div>
+
+<div class="kpi_link">
+  KPI
+  <a [routerLink]="['/app/curb-view']" routerLinkActive="router-link-active"
+    ><i class="icofont-external-link"></i
+  ></a>
+</div>
+
+<div class="Mid_Bot">
+  <div class="cmn">
+    <div class="inr">
+      ​
+      <div class="mainTab">
+        <div class="tab-navigation">
+          <select onchange="changeSelectorHandler(this)">
+            <option value="1">Curbspace Productivity By Date 1</option>
+            <option value="2">Curbspace Productivity By Date 2</option>
+            <option value="3">Curbspace Productivity By Date 3</option>
+          </select>
+        </div>
+        <div class="All_Data content">
+          ​​
+          <div class="tab-content tab-1">
+            <!-- <img src="assets/image/productivity1.jpg" class="tmpry" /> -->
+            <app-line-chart [config]="config1" #lineChart1></app-line-chart>
+          </div>
+          <div class="tab-content tab-2">
+            <!-- <img src="assets/image/productivity2.jpg" class="tmpry" /> -->
+            <app-line-chart [config]="config1" #lineChart1></app-line-chart>
+          </div>
+          <div class="tab-content tab-3">
+            <!-- <img src="assets/image/productivity3.jpg" class="tmpry" /> -->
+            <app-line-chart [config]="config1" #lineChart1></app-line-chart>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cmn">
+    Curbspace Productivity By CurbID ​
+    <div class="mainTab">
+      <div class="tab-navigation">
+        <select onchange="changeSelectorHandler(this)">
+          <option value="1">Curbspace Productivity By Date 1</option>
+          <option value="2">Curbspace Productivity By Date 2</option>
+          <option value="3">Curbspace Productivity By Date 3</option>
+        </select>
+      </div>
+
+      <div class="All_Data content">
+        ​​
+        <div class="tab-content tab-1">
+          <app-line-chart [config]="config2" #lineChart2></app-line-chart>
+          <!-- <img src="assets/image/productivity1.jpg" class="tmpry" /> -->
+        </div>
+        <div class="tab-content tab-2">
+          <app-line-chart [config]="config2" #lineChart2></app-line-chart>
+          <!-- <img src="assets/image/productivity2.jpg" class="tmpry" /> -->
+        </div>
+        <div class="tab-content tab-3">
+          <app-line-chart [config]="config2" #lineChart2></app-line-chart>
+          <!--    <img src="assets/image/productivity3.jpg" class="tmpry" /> -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,22 +1,329 @@
+import { Observable } from 'rxjs';
 import * as Highcharts from 'highcharts';
 
-import { Component, OnInit } from '@angular/core';
+import { AfterContentInit, Component, OnInit } from '@angular/core';
+import { fromJS } from 'immutable';
+import mapStyle from '../../../assets/style.json';
+import { HttpClient } from '@angular/common/http';
+
+import {
+  CurbFeature,
+  CurbFeatureCollection,
+  filterCurblrData,
+} from '../../common/curblr';
+import {
+  FeatureCollection,
+  featureCollection,
+  feature,
+  LineString,
+} from '@turf/helpers';
 
 declare var $: any;
+
+//loads map style
+const defaultMapStyle = fromJS(mapStyle);
+
+//sunset
+// const MAXSTAY_COLOR_MAP:{ [key: string]: any } = {
+//     "3": "#FFDF00",
+//     "15": "#F1B408",
+//     "30": "#F1871C",
+//     "60": "#F06121",
+//     "120": "#F12627",
+//     "180": "#C80286",
+//     "240": "#63238A",
+// }
+
+//opposite of sunset
+// const MAXSTAY_COLOR_MAP:{ [key: string]: any } = {
+//     "3": "#FFDF00",
+//     "15": "#8BBA25",
+//     "30": "#018D5A",
+//     "60": "#00A8C4",
+//     "120": "#1078C3",
+//     "180": "#4336A2",
+//     "240": "#6D238A",
+// }
+
+//blues
+const MAXSTAY_COLOR_MAP: { [key: string]: any } = {
+  '3': '#e1f5fe',
+  '15': '#81d4fa',
+  '30': '#4fc3f7',
+  '60': '#03a9f4',
+  '120': '#0277bd',
+  '180': '#01579b',
+  '240': '#00345D',
+};
+
+//greens
+// const MAXSTAY_COLOR_MAP:{ [key: string]: any } = {
+//     "3": "#ffee58",
+//     "15": "#cddc39",
+//     "30": "#7cb342",
+//     "60": "#689f38",
+//     "120": "#388e3c",
+//     "180": "#1b5e20",
+//     "240": "#124116",
+// }
+
+const ACTIVITY_COLOR_MAP = {
+  'no standing': '#777777',
+  'no parking': '#DD2C00',
+  'passenger loading': '#FF9100',
+  loading: '#FFEA00',
+  transit: '#37B34A',
+  'free parking': '#00E5FF',
+  'paid parking': '#2979FF',
+  restricted: '#AA00FF',
+};
+
+const scaledOffset = (offset: number) => {
+  return {
+    type: 'exponential',
+    base: 2,
+    stops: [
+      [12, offset * Math.pow(2, 12 - 16)],
+      [16, offset * Math.pow(2, 16 - 16)],
+    ],
+  };
+};
+
+// sets average parking length (roughly 7m, per NACTO) for use in estimating length in # of parking spaces
+const avgParkingLength = 7;
+
+const renderCurblrData = (
+  data: CurbFeatureCollection
+  // day: string,
+  // time: string,
+  // filterType: string
+): FeatureCollection<LineString> => {
+  var renderData = featureCollection<LineString>([]);
+  // var filteredData = filterCurblrData(data, day, time);
+
+  for (var curbFeature of renderData.features) {
+    var renderFeature = feature<LineString>(curbFeature.geometry);
+    renderFeature.properties = {};
+
+    for (var regulation of curbFeature.properties.regulations) {
+      // marks each feature with its length
+      renderFeature.properties.length =
+        curbFeature.properties.location.shstLocationEnd -
+        curbFeature.properties.location.shstLocationStart;
+
+      renderFeature.properties.priority = regulation.priority;
+
+      var priority = renderFeature.properties.priority;
+      // if(priority) {
+      var offsetPriority = 0;
+      //offsetPriority = (10 * priority);
+
+      var baseOffset = 10 + offsetPriority;
+      if (curbFeature.properties.location.sideOfStreet === 'left')
+        baseOffset = 0 - 10 - offsetPriority;
+
+      renderFeature.properties['offset'] = baseOffset; //scaledOffset(baseOffset);
+
+      renderFeature.properties['color'] = ACTIVITY_COLOR_MAP['no parking'];
+
+      // if (filterType === "maxStay") {
+      //   if (regulation.rule.maxStay) {
+      //     var maxStay = regulation.rule.maxStay + "";
+      //     if (MAXSTAY_COLOR_MAP[maxStay]) {
+      //       renderFeature.properties["color"] = MAXSTAY_COLOR_MAP[maxStay];
+      //       renderFeature.properties.maxStay = maxStay;
+      //       renderData.features.push(renderFeature);
+      //     }
+      //   }
+      // }
+      // // Splits out common activities and variants for an overall view. Features that fall into more than one "bucket" are duplicated, but handled by ensuring that they ultimately fall into the more specific bucket via painter's algorithm.
+      // // Requires ts.3.7 because of null arrays - I lucked out on mine but this will break on a different environment
+      // else if (filterType === "activity") {
+
+      //   if (regulation.rule.activity === "no parking") {
+      //     renderFeature.properties["color"] =
+      //       ACTIVITY_COLOR_MAP["no parking"];
+      //     // set the activty to use later in hooking up chart to map data
+      //     renderFeature.properties.activity = "no parking";
+      //     renderData.features.push(renderFeature);
+      //   }
+      //   // if (
+      //   //   regulation.rule.activity === "no standing"
+      //   // ) {
+      //   //   renderFeature.properties["color"] =
+      //   //     ACTIVITY_COLOR_MAP["no standing"];
+      //   //   // set the activty to use later in hooking up chart to map data
+      //   //   renderFeature.properties.activity = "no standing";
+      //   //   renderData.features.push(renderFeature);
+      //   // }
+      //   if (
+      //     regulation.rule.activity === "parking" &&
+      //     !regulation.rule.payment &&
+      //     !regulation.userClasses?.some(uc => uc.classes?.length > 0)
+      //   ) {
+      //     renderFeature.properties["color"] =
+      //       ACTIVITY_COLOR_MAP["free parking"];
+      //     renderFeature.properties.activity = "free parking";
+      //     renderData.features.push(renderFeature);
+      //   }
+      //   if (
+      //     regulation.rule.activity === "parking" &&
+      //     regulation.rule.payment &&
+      //     !regulation.userClasses?.some(uc => uc.classes?.length > 0)
+      //   ) {
+      //     renderFeature.properties["color"] =
+      //       ACTIVITY_COLOR_MAP["paid parking"];
+      //     renderFeature.properties.activity = "paid parking";
+      //     renderData.features.push(renderFeature);
+      //   }
+      //   if (regulation.rule.activity === "loading") {
+      //     renderFeature.properties["color"] = ACTIVITY_COLOR_MAP["loading"];
+      //     renderFeature.properties.activity = "loading";
+      //     renderData.features.push(renderFeature);
+      //   }
+      //   if (
+      //     regulation.userClasses?.some(uc =>
+      //       [
+      //         "motorcycle",
+      //         "hotel guest",
+      //         "permit",
+      //         "reserved",
+      //         "handicap",
+      //         "scooter",
+      //         "bicycle",
+      //         "USPS",
+      //         "car share",
+      //         "police",
+      //         "tour bus"
+      //       ].some(c => uc.classes?.includes(c))
+      //     )
+      //   ) {
+      //     renderFeature.properties["color"] =
+      //       ACTIVITY_COLOR_MAP["restricted"];
+      //     renderFeature.properties.activity = "restricted";
+      //     renderData.features.push(renderFeature);
+      //   }
+      //   if (
+      //     regulation.userClasses?.some(uc =>
+      //       ["taxi", "passenger", "TNC", "rideshare"].some(c =>
+      //         uc.classes?.includes(c)
+      //       )
+      //     )
+      //   ) {
+      //     renderFeature.properties["color"] =
+      //       ACTIVITY_COLOR_MAP["passenger loading"];
+      //     renderFeature.properties.activity = "passenger loading";
+      //     renderData.features.push(renderFeature);
+      //   }
+      //   if (
+      //     regulation.userClasses?.some(uc => uc.classes?.includes("transit"))
+      //   ) {
+      //     renderFeature.properties["color"] = ACTIVITY_COLOR_MAP["transit"];
+      //     renderFeature.properties.activity = "transit";
+      //     renderData.features.push(renderFeature);
+      //   }
+      // }
+    }
+  }
+
+  return renderData;
+};
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, AfterContentInit {
   config1: any = {};
   config2: any = {};
+  url =
+    'http://localhost:4200/assets/data/downtown_portland_2020-07-30.curblr.json';
+  // url = 'http://34.218.20.24:5000/curb/segs',
+  // url = "http://34.218.20.24:5000/curb/sens",
 
-  constructor() {}
+  defaultMapStyle = fromJS(mapStyle);
+
+  state = {
+    mode: 'activity',
+    day: 'mo',
+    time: '08:01',
+    mapStyle: this.defaultMapStyle,
+  };
+
+  // buildingSource = {
+  //   data: 'http://34.218.20.24:5000/curb/sens',
+  //   type: 'geojson'
+  // };
+  buildingSource = {
+    data: '{}',
+    // data: 'http://localhost:4200/assets/data/downtown_portland_2020-07-30.curblr.json',
+    // data: 'http://34.218.20.24:5000/curb/segs',
+    // data: "http://34.218.20.24:5000/curb/sens",
+    type: 'geojson',
+  };
+
+  constructor(private http: HttpClient) {
+    this.getJSON(this.url).subscribe((data) => {
+      console.log('data', data);
+      data.features.forEach((element) => {
+        element.properties['color'] = ACTIVITY_COLOR_MAP['no parking'];
+      });
+      this.buildingSource.data = data;
+    });
+  }
+
+  scaledWidth(width: number) {
+    return {
+      type: 'exponential',
+      base: 2,
+      stops: [
+        [12, width * Math.pow(2, 12 - 16)],
+        [16, width * Math.pow(2, 16 - 16)],
+      ],
+    };
+  }
+
+  // dataLayer = fromJS({
+  //   id: 'dataLayer',
+  //   // source: 'curblrData',
+  //   source: this.buildingSource,
+  //   type: 'line',
+  //   interactive: true,
+  //   paint: {
+  //     'line-color': ['get', 'color'],
+  //     'line-offset': ['get', 'offset'],
+  //     'line-width': this.scaledWidth(6.8),
+  //   },
+  // });
+
+  dataLayer = {
+    id: 'dataLayer',
+    // source: 'curblrData',
+    source: this.buildingSource,
+    type: 'line',
+    interactive: true,
+    paint: {
+      'line-color': ['get', 'color'],
+      'line-offset': ['get', 'offset'],
+      'line-width': this.scaledWidth(6.8),
+    },
+  };
 
   ngOnInit(): void {
     this.config1 = this.getConfig();
     this.config2 = this.getConfig();
+    console.log('dataLayer', this.dataLayer);
+  }
+
+  ngAfterContentInit() {
+    // mapboxgl.accessToken = '<your access token here>';
+    // const map = new mapboxgl.Map({
+    //     container: 'map', // container ID
+    //     style: 'mapbox://styles/mapbox/streets-v11', // style URL
+    //     center: [-74.5, 40], // starting position [lng, lat]
+    //     zoom: 9 // starting zoom
+    // });
   }
 
   getConfig() {
@@ -222,5 +529,9 @@ export class DashboardComponent implements OnInit {
         enabled: false,
       },
     };
+  }
+
+  public getJSON(url): Observable<any> {
+    return this.http.get(url);
   }
 }

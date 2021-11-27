@@ -1,30 +1,42 @@
 <div class="Mid_Top">
   <div class="d-flex h-100 p-0 m-0">
     <div class="h-100 p-0 m-0 w-80 position-relative">
-      <app-map [latlong]="[51.5, -0.09]"></app-map>
+      <!-- <app-map [latlong]="[51.5, -0.09]"></app-map> -->
+      <mgl-map
+      [style]="'mapbox://styles/mapbox/dark-v10'"
+        [zoom]="[16]"
+        [center]="[-122.6795, 45.5197]"
+      >
+        <mgl-layer
+          [id]="dataLayer.id"
+          [type]="dataLayer.type"
+          [source]="dataLayer.source"
+          [paint]="dataLayer.paint"
+        ></mgl-layer>
+      </mgl-map>
     </div>
     <div class="w-20">
-        <p>&nbsp;</p>
+      <p>&nbsp;</p>
     </div>
   </div>
-  <a
+  <!-- <a
     [routerLink]="['/app/curb-view']"
     routerLinkActive="router-link-active"
     class="ancr"
     >&nbsp;</a
-  >
+  > -->
   <a
     [routerLink]="['/app/curb-view']"
     routerLinkActive="router-link-active"
     class="ancr ancr2"
     >&nbsp;</a
   >
-  <a
+  <!-- <a
     [routerLink]="['/app/curb-view']"
     routerLinkActive="router-link-active"
     class="ancr ancr3"
     >&nbsp;</a
-  >
+  > -->
 </div>
 
 <div class="kpi_link">

@@ -65,7 +65,8 @@ body {
 }
 
 .middle .Mid_Top a.ancr.ancr2 {
-  left: 24.8vw;
+  /* left: 24.8vw; */
+  left: 33.8vw;
   top: 4.9vw;
   z-index: 10000;
 }

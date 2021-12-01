@@ -43,8 +43,8 @@ export function filterTimeAndDay(regulation: Regulation, filterDayOfWeek: string
 
 export function filterCurblrData (
     data: CurbFeatureCollection,
-    day: string,
-    time: string
+    // day: string,
+    // time: string
   ): CurbFeatureCollection {
     let filteredData = new CurbFeatureCollection();
     filteredData.manifest = data.manifest;
@@ -57,12 +57,12 @@ export function filterCurblrData (
         let defaultRegulation = new Regulation();
         defaultRegulation.rule = new Rule();
         defaultRegulation.rule.priorityCategory = "free parking";  // defaults to free parking. TODO make configurable
-        defaultRegulation.rule.activity = "parking";  // defaults to free parking. TODO make configurable
+        defaultRegulation.rule.activity = defaultRegulation.rule.activity || "parking";  // defaults to free parking. TODO make configurable
         filteredFeatureDefault.properties.regulations.push(defaultRegulation);
         sortedCurbFeatures.add(filteredFeatureDefault);
 
         for (const regulation of curbFeature.properties.regulations) {
-            if (!filterTimeAndDay(regulation, day, time)) continue;
+            // if (!filterTimeAndDay(regulation, day, time)) continue;
 
             let filteredFeature = new CurbFeature();
             filteredFeature.geometry = curbFeature.geometry;
@@ -144,7 +144,7 @@ export class Manifest {
 }
 
 export class Rule  {
-    activity:"parking" | "no parking" | "stopping" | "no stopping" | "loading" | "no loading";
+    activity:"no standing" | "parking" | "no parking" | "stopping" | "no stopping" | "loading" | "no loading";
     priorityCategory?:string;
     maxStay?:number
     noReturn?:number

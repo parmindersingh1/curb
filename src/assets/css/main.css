@@ -38,7 +38,7 @@ body {
 }
 .middle .Mid_Top {
   height: 54%;
-  overflow: hidden;
+  /* overflow: hidden; */
   background-image: url("../image/map.jpg"); /* height: 100%; */
   background-position: center;
   background-repeat: no-repeat;

@@ -4,11 +4,17 @@ import { PageRoutingModule } from './page-routing.module';
 import { SharedModule } from './../shared/shared.module';
 import { CurbViewComponent } from './curb-view/curb-view.component';
 import { NgxMapboxGLModule } from 'ngx-mapbox-gl';
+import { LayerOneComponent } from './components/layer-one/layer-one.component';
+import { LayerTwoComponent } from './components/layer-two/layer-two.component';
+import { LayerThreeComponent } from './components/layer-three/layer-three.component';
 
 @NgModule({
   declarations: [
     DashboardComponent,
-    CurbViewComponent
+    CurbViewComponent,
+    LayerOneComponent,
+    LayerTwoComponent,
+    LayerThreeComponent
   ],
   imports: [
     SharedModule,

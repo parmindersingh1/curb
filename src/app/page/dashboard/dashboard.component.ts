@@ -1,3 +1,4 @@
+import { activity } from './../../actions/filter';
 import { Observable } from 'rxjs';
 import * as Highcharts from 'highcharts';
 
@@ -67,16 +68,7 @@ const MAXSTAY_COLOR_MAP: { [key: string]: any } = {
 //     "240": "#124116",
 // }
 
-const ACTIVITY_COLOR_MAP = {
-  'no standing': '#777777',
-  'no parking': '#DD2C00',
-  'passenger loading': '#FF9100',
-  loading: '#FFEA00',
-  transit: '#37B34A',
-  'free parking': '#00E5FF',
-  'paid parking': '#2979FF',
-  restricted: '#AA00FF',
-};
+
 
 const scaledOffset = (offset: number) => {
   return {
@@ -124,7 +116,7 @@ const renderCurblrData = (
 
       renderFeature.properties['offset'] = baseOffset; //scaledOffset(baseOffset);
 
-      renderFeature.properties['color'] = ACTIVITY_COLOR_MAP['no parking'];
+      // renderFeature.properties['color'] = ACTIVITY_COLOR_MAP['passenger loading'];
 
       // if (filterType === "maxStay") {
       //   if (regulation.rule.maxStay) {
@@ -237,10 +229,34 @@ const renderCurblrData = (
 export class DashboardComponent implements OnInit, AfterContentInit {
   config1: any = {};
   config2: any = {};
-  url =
-    'http://localhost:4200/assets/data/downtown_portland_2020-07-30.curblr.json';
-  // url = 'http://34.218.20.24:5000/curb/segs',
-  // url = "http://34.218.20.24:5000/curb/sens",
+  selectedLayer = '1';
+
+  cameraData: any = {};
+  // url =
+    // 'http://localhost:4200/assets/data/downtown_portland_2020-07-30.curblr.json';
+  segsUrl = 'http://34.218.20.24:5000/curb/segs';
+  sensUrl = "http://34.218.20.24:5000/curb/sens";
+
+  
+  ACTIVITY_COLOR_MAP = {
+    'no standing': '#777777',
+    'no parking': '#DD2C00',
+    'passenger loading': '#FF9100',
+    loading: '#FFEA00',
+    transit: '#37B34A',
+    'free parking': '#00E5FF',
+    'paid parking': '#2979FF',
+    restricted: '#AA00FF',
+  };
+  
+  colorsList = Object.keys(this.ACTIVITY_COLOR_MAP)
+  randomIntFromInterval(min, max) { // min and max included 
+    return Math.floor(Math.random() * (max - min + 1) + min)
+  }
+  
+  getRandomColor() {
+    return Object.values(this.ACTIVITY_COLOR_MAP)[this.randomIntFromInterval(0, 7)]
+  }
 
   defaultMapStyle = fromJS(mapStyle);
 
@@ -264,14 +280,40 @@ export class DashboardComponent implements OnInit, AfterContentInit {
   };
 
   constructor(private http: HttpClient) {
-    this.getJSON(this.url).subscribe((data) => {
-      console.log('data', data);
+    this.fetchSegsData();
+    this.fetchSensData();
+  }
+
+  fetchSegsData() {
+    this.getJSON(this.segsUrl).subscribe((data) => {
+      console.log('segs data', data);
       data.features.forEach((element) => {
-        element.properties['color'] = ACTIVITY_COLOR_MAP['no parking'];
+        // const activity = JSON.parse(element.properties.regulations)[0].rule.activity;
+        let regulations = {};
+        if (typeof element.properties.regulations === "string") {
+          regulations = JSON.parse(element.properties.regulations)
+        } else {
+          regulations = element.properties.regulations;
+        }
+        const activity = regulations[0].rule.activity;
+        if(!(activity in this.ACTIVITY_COLOR_MAP)) {
+          element.properties['color'] = this.getRandomColor();
+        } else {
+          element.properties['color'] = this.ACTIVITY_COLOR_MAP[activity];
+        }
       });
       this.buildingSource.data = data;
     });
   }
+
+  fetchSensData() {
+    this.getJSON(this.sensUrl).subscribe((data) => {
+      console.log('sens data', data);
+     
+      this.cameraData = data;
+    });
+  }
+
 
   scaledWidth(width: number) {
     return {
@@ -529,6 +571,10 @@ export class DashboardComponent implements OnInit, AfterContentInit {
         enabled: false,
       },
     };
+  }
+
+  onLayerSelect(event, layer) {
+    this.selectedLayer = layer;
   }
 
   public getJSON(url): Observable<any> {

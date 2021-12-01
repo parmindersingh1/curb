@@ -6,7 +6,8 @@ export const environment = {
   production: false,
   apiUrl: "",
   mapboxAccessToken:
-  "pk.eyJ1Ijoic2FhZGlxbSIsImEiOiJjamJpMXcxa3AyMG9zMzNyNmdxNDlneGRvIn0.wjlI8r1S_-xxtq2d-W5qPA"
+  "pk.eyJ1IjoicmFqYXRnaXJpIiwiYSI6ImNra255anBvMzNuNmYybm9jdjZxZDNqNHcifQ.0T-13cOjpkzgpwYokLTrEA"
+  //"pk.eyJ1Ijoic2FhZGlxbSIsImEiOiJjamJpMXcxa3AyMG9zMzNyNmdxNDlneGRvIn0.wjlI8r1S_-xxtq2d-W5qPA"
 };
 
 /*

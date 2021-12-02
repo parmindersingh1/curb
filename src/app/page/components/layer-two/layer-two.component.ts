@@ -242,7 +242,7 @@ export class LayerTwoComponent implements OnInit, AfterViewInit {
                             </table>
                           </div>`;
         console.log('tableData ', tableData);
-        layer.bindPopup(tableData, { width: 200 });
+        layer.bindPopup(tableData, { width: 300,'className' : 'custom' });
     }
 
     // create your custom icon
